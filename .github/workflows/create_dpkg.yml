@@ -113,7 +113,7 @@ jobs:
 
       - name: Add ubuntu-noble-arm64
         if: ${{ env.BUILD_ubuntu-noble-arm64 == 'true' }}
-        run: echo -n '${{ env.ubuntu-noble-arm64 }},' >> $PKGCONF
+        run: echo -n '${{ env.ubuntu-noble-arm64 }},' >> $BUILDTARGETS
 
       - name: Add debian-bullseye-amd64
         if: ${{ env.BUILD_debian-bullseye-amd64 == 'true' }}
