@@ -1,0 +1,18 @@
+[
+  {
+    "name":"owntone",
+    "owner":"owntone",
+    "repository":"owntone-server",
+    "version":"29.3.142.gitd6fb3ed",
+    "deb":"1",
+    "commit":"d6fb3edf5831de38134ebd92fcf09a730ddd37aa"
+  },
+  {
+    "name":"airptpd",
+    "owner":"owntone",
+    "repository":"libairptp",
+    "version":"0.5",
+    "deb":"1",
+    "commit":"7e2252e0258525b3480b54b1906038fee230e981"
+  }
+]

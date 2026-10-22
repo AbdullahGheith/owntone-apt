@@ -3,8 +3,16 @@ name: Update RPi repository
 on:
   workflow_dispatch:
     inputs:
+      owntone-server:
+        description: Update owntone
+        required: true
+        type: boolean
+      airptpd:
+        description: Update airptpd
+        required: true
+        type: boolean
       release:
-        description: Create release?
+        description: Create release
         required: true
         type: boolean
 
@@ -16,11 +24,11 @@ jobs:
   update_repo:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
 
       - name: Prepare tmp directories
         run: |
-          mkdir dl
+          mkdir -p dl/artifacts
           mkdir dist
 
       - name: Install reprepro
@@ -43,26 +51,32 @@ jobs:
           ls -lR repo/rpi/var
 
       - name: Download packages
-        uses: dawidd6/action-download-artifact@v2
+        uses: dawidd6/action-download-artifact@v21
         with:
           workflow: create_dpkg.yml
           workflow_conclusion: success
-          path: dl
+          path: dl/artifacts
+          name: "raspbian|raspberrypi"
+          name_is_regexp: true
 
-      # Moves from e.g. dl/raspberrypi-bullseye-arm64 to repo/rpi/incoming
-      - name: Add incoming packages
-        working-directory: repo/rpi
-        env:
-          DPKGDIR: ../../dl
+      - name: List artifacts
         run: |
-          test ! -d $DPKGDIR/raspbian-buster-armhf || mv $DPKGDIR/raspbian-buster-armhf/* var/incoming/
-          test ! -d $DPKGDIR/raspbian-bullseye-armhf || mv $DPKGDIR/raspbian-bullseye-armhf/* var/incoming/
-          test ! -d $DPKGDIR/raspbian-bookworm-armhf || mv $DPKGDIR/raspbian-bookworm-armhf/* var/incoming/
-          test ! -d $DPKGDIR/raspbian-trixie-armhf || mv $DPKGDIR/raspbian-trixie-armhf/* var/incoming/
-          test ! -d $DPKGDIR/raspberrypi-bullseye-arm64 || mv $DPKGDIR/raspberrypi-bullseye-arm64/* var/incoming/
-          test ! -d $DPKGDIR/raspberrypi-bookworm-arm64 || mv $DPKGDIR/raspberrypi-bookworm-arm64/* var/incoming/
-          test ! -d $DPKGDIR/raspberrypi-trixie-arm64 || mv $DPKGDIR/raspberrypi-trixie-arm64/* var/incoming/
-          test ! -d $DPKGDIR/ubuntu-noble-arm64 || mv $DPKGDIR/ubuntu-noble-arm64/* var/incoming/
+          ls -lR dl/artifacts
+
+      - name: Add owntone debs
+        if: ${{ github.event.inputs.owntone-server == 'true' }}
+        run: |
+          find dl/artifacts/owntone* -type f -print0 | xargs -0 cp --update=none --target-directory=repo/rpi/var/incoming
+
+      - name: Add airptpd debs
+        if: ${{ github.event.inputs.airptpd == 'true' }}
+        run: |
+          find dl/artifacts/airptpd* -type f -print0 | xargs -0 cp --update=none --target-directory=repo/rpi/var/incoming
+
+      - name: Process incoming packages
+        working-directory: repo/rpi
+        run: |
+          ls -l var/incoming
           reprepro processincoming default
 
       - name: Pack and prepare release
